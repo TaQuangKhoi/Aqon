@@ -4,7 +4,13 @@ A CLI tool for batch conversion of Word and Excel documents to PDF.
 
 ## Description
 
-Aqon is a command-line utility that simplifies the process of converting Microsoft Office documents (DOCX, XLSX, XLS) to PDF format. It supports both batch conversion of existing files and watching directories for new files to convert automatically.
+Aqon is a command-line utility 
+that simplifies the process of converting 
+Microsoft Office documents (DOCX, XLSX, XLS) to PDF format. 
+It supports both batch conversion of existing files and watching directories for new files to convert automatically.
+
+Aqon was created to make it easy to push data files into Google's NotebookLM. 
+By converting Word and Excel documents to PDF format, they become compatible with NotebookLM's document analysis capabilities.
 
 ## Features
 
@@ -84,6 +90,18 @@ Watch a directory for new Excel files and convert them automatically:
 ```
 Aqon watch --input documents --output output --type xlsx
 ```
+
+## Google NotebookLM Integration
+
+[Google NotebookLM](https://notebooklm.google/) is an AI-powered note-taking tool that can analyze documents and help you work with their content. NotebookLM accepts PDF files as input for its document analysis.
+
+Aqon was specifically created to streamline the workflow of preparing documents for NotebookLM:
+
+1. Convert your Word documents and Excel spreadsheets to PDF format using Aqon
+2. Upload the resulting PDF files to NotebookLM
+3. Let NotebookLM analyze your documents and extract insights
+
+This integration helps you quickly transform your existing document library into a format that can be processed by NotebookLM's AI capabilities.
 
 ## Dependencies
 
