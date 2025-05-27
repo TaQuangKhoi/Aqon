@@ -5,6 +5,15 @@ edition = "2024"
 description = "A CLI tool for batch conversion of Word and Excel documents to PDF"
 authors = ["Aqon Team"]
 
+# Define both library and binary targets
+[lib]
+name = "Aqon"
+path = "src/lib.rs"
+
+[[bin]]
+name = "aqon"
+path = "src/main.rs"
+
 [dependencies]
 clap = { version = "4.4", features = ["derive"] }
 docx-rs = "0.4"
