@@ -9,7 +9,7 @@ use crate::converter::docx_reader::DocxContent;
 use crate::converter::xlsx_reader::Sheet;
 
 /// Default font to use in generated PDFs
-const DEFAULT_FONT_NAME: &str = "DejaVuSans";
+const DEFAULT_FONT_NAME: &str = "Roboto";
 
 /// Creates a PDF file from Word document content
 ///
@@ -217,28 +217,28 @@ fn load_custom_fonts() -> Result<fonts::FontFamily<fonts::FontData>> {
     // and the application will fall back to built-in fonts
     
     let font_data = fonts::FontData::new(
-        std::fs::read("resources/fonts/DejaVuSans.ttf")
+        std::fs::read("resources/fonts/Roboto/static/Roboto-Regular.ttf")
             .context("Failed to read regular font file")?,
         None,
     )
     .context("Failed to load regular font data")?;
     
     let font_data_bold = fonts::FontData::new(
-        std::fs::read("resources/fonts/DejaVuSans-Bold.ttf")
+        std::fs::read("resources/fonts/Roboto/static/Roboto-Bold.ttf")
             .context("Failed to read bold font file")?,
         None,
     )
     .context("Failed to load bold font data")?;
     
     let font_data_italic = fonts::FontData::new(
-        std::fs::read("resources/fonts/DejaVuSans-Oblique.ttf")
+        std::fs::read("resources/fonts/Roboto/static/Roboto-Italic.ttf")
             .context("Failed to read italic font file")?,
         None,
     )
     .context("Failed to load italic font data")?;
     
     let font_data_bold_italic = fonts::FontData::new(
-        std::fs::read("resources/fonts/DejaVuSans-BoldOblique.ttf")
+        std::fs::read("resources/fonts/Roboto/static/Roboto-BoldItalic.ttf")
             .context("Failed to read bold italic font file")?,
         None,
     )
