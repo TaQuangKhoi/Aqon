@@ -29,27 +29,27 @@ pub fn create_pdf_from_docx(
 ) -> Result<PathBuf> {
     let output_filename = generate_output_filename(input_path, output_dir)?;
     info!("Creating PDF from Word document: {}", output_filename.display());
-    
+
     // Load default font
     let font_family = load_default_font()?;
-    
+
     // Create PDF document
     let mut doc = genpdf::Document::new(font_family);
     doc.set_title(input_path.file_stem()
         .map(|s| s.to_string_lossy().to_string())
         .unwrap_or_else(|| "Converted Document".to_string()));
-    
+
     // Set default margins
     let mut decorator = genpdf::SimplePageDecorator::new();
     decorator.set_margins(20);
     doc.set_page_decorator(decorator);
-    
+
     // Add paragraphs
     for paragraph in &content.paragraphs {
         doc.push(elements::Paragraph::new(paragraph));
         doc.push(elements::Break::new(1));
     }
-    
+
     // Add tables
     for table_data in &content.tables {
         if !table_data.is_empty() {
@@ -58,14 +58,14 @@ pub fn create_pdf_from_docx(
                 let col_count = first_row.len();
                 let widths = vec![1; col_count]; // Equal width for all columns
                 let mut table = elements::TableLayout::new(widths);
-                
+
                 // Add table data
                 for row in table_data {
                     // Create a vector of cell elements first
                     let cell_elements: Vec<elements::Paragraph> = row.iter()
                         .map(|cell| elements::Paragraph::new(cell))
                         .collect();
-                    
+
                     // Then add them to a row
                     let mut table_row = table.row();
                     for cell_element in cell_elements {
@@ -73,17 +73,17 @@ pub fn create_pdf_from_docx(
                     }
                     table_row.push().unwrap();
                 }
-                
+
                 doc.push(table);
                 doc.push(elements::Break::new(1));
             }
         }
     }
-    
+
     // Generate PDF
     doc.render_to_file(&output_filename)
         .context(format!("Failed to generate PDF file: {}", output_filename.display()))?;
-    
+
     info!("Successfully created PDF: {}", output_filename.display());
     Ok(output_filename)
 }
@@ -106,21 +106,21 @@ pub fn create_pdf_from_xlsx(
 ) -> Result<PathBuf> {
     let output_filename = generate_output_filename(input_path, output_dir)?;
     info!("Creating PDF from Excel spreadsheet: {}", output_filename.display());
-    
+
     // Load default font
     let font_family = load_default_font()?;
-    
+
     // Create PDF document
     let mut doc = genpdf::Document::new(font_family);
     doc.set_title(input_path.file_stem()
         .map(|s| s.to_string_lossy().to_string())
         .unwrap_or_else(|| "Converted Spreadsheet".to_string()));
-    
+
     // Set default margins
     let mut decorator = genpdf::SimplePageDecorator::new();
     decorator.set_margins(20);
     doc.set_page_decorator(decorator);
-    
+
     // Process each sheet
     for (i, sheet) in sheets.iter().enumerate() {
         // Add sheet name as heading
@@ -129,21 +129,21 @@ pub fn create_pdf_from_xlsx(
             .styled(style::Style::new().bold());
         doc.push(heading);
         doc.push(elements::Break::new(1));
-        
+
         if !sheet.data.is_empty() {
             // Determine column widths based on the first row
             let col_count = sheet.data.first().map_or(0, |row| row.len());
             if col_count > 0 {
                 let widths = vec![1; col_count]; // Equal width for all columns
                 let mut table = elements::TableLayout::new(widths);
-                
+
                 // Add table data
                 for row in &sheet.data {
                     // Create a vector of cell elements first
                     let cell_elements: Vec<elements::Paragraph> = row.iter()
                         .map(|cell| elements::Paragraph::new(cell))
                         .collect();
-                    
+
                     // Then add them to a row
                     let mut table_row = table.row();
                     for cell_element in cell_elements {
@@ -151,23 +151,23 @@ pub fn create_pdf_from_xlsx(
                     }
                     table_row.push().unwrap();
                 }
-                
+
                 doc.push(table);
             }
         } else {
             doc.push(elements::Paragraph::new("(Empty sheet)"));
         }
-        
+
         // Add page break between sheets (except for the last one)
         if i < sheets.len() - 1 {
             doc.push(elements::PageBreak::new());
         }
     }
-    
+
     // Generate PDF
     doc.render_to_file(&output_filename)
         .context(format!("Failed to generate PDF file: {}", output_filename.display()))?;
-    
+
     info!("Successfully created PDF: {}", output_filename.display());
     Ok(output_filename)
 }
@@ -179,7 +179,7 @@ pub fn create_pdf_from_xlsx(
 /// * `Result<fonts::FontFamily<fonts::FontData>>` - The loaded font family or an error
 fn load_default_font() -> Result<fonts::FontFamily<fonts::FontData>> {
     debug!("Loading default font: {}", DEFAULT_FONT_NAME);
-    
+
     // Try to load custom fonts, but fall back to built-in fonts if that fails
     match load_custom_fonts() {
         Ok(fonts) => {
@@ -192,14 +192,14 @@ fn load_default_font() -> Result<fonts::FontFamily<fonts::FontData>> {
             // In a real implementation, we would use a built-in font
             let empty_data = fonts::FontData::new(Vec::new(), None)
                 .context("Failed to create empty font data")?;
-            
+
             let font_family = fonts::FontFamily {
                 regular: empty_data.clone(),
                 bold: empty_data.clone(),
                 italic: empty_data.clone(),
                 bold_italic: empty_data,
             };
-            
+
             warn!("Using empty font data. In a real implementation, use built-in fonts.");
             Ok(font_family)
         }
@@ -215,42 +215,42 @@ fn load_custom_fonts() -> Result<fonts::FontFamily<fonts::FontData>> {
     // In a real implementation, these would be actual font files
     // For this example, we're using placeholders, so this will likely fail
     // and the application will fall back to built-in fonts
-    
+
     let font_data = fonts::FontData::new(
         std::fs::read("resources/fonts/Roboto/static/Roboto-Regular.ttf")
             .context("Failed to read regular font file")?,
         None,
     )
     .context("Failed to load regular font data")?;
-    
+
     let font_data_bold = fonts::FontData::new(
         std::fs::read("resources/fonts/Roboto/static/Roboto-Bold.ttf")
             .context("Failed to read bold font file")?,
         None,
     )
     .context("Failed to load bold font data")?;
-    
+
     let font_data_italic = fonts::FontData::new(
         std::fs::read("resources/fonts/Roboto/static/Roboto-Italic.ttf")
             .context("Failed to read italic font file")?,
         None,
     )
     .context("Failed to load italic font data")?;
-    
+
     let font_data_bold_italic = fonts::FontData::new(
         std::fs::read("resources/fonts/Roboto/static/Roboto-BoldItalic.ttf")
             .context("Failed to read bold italic font file")?,
         None,
     )
     .context("Failed to load bold italic font data")?;
-    
+
     let font_family = fonts::FontFamily {
         regular: font_data,
         bold: font_data_bold,
         italic: font_data_italic,
         bold_italic: font_data_bold_italic,
     };
-    
+
     Ok(font_family)
 }
 
@@ -266,11 +266,13 @@ fn load_custom_fonts() -> Result<fonts::FontFamily<fonts::FontData>> {
 /// * `Result<PathBuf>` - The generated output path or an error
 fn generate_output_filename(input_path: &Path, output_dir: &Path) -> Result<PathBuf> {
     let file_stem = input_path.file_stem()
-        .context("Failed to get file name")?
-        .to_string_lossy();
-    
-    let output_filename = output_dir.join(format!("{}.pdf", file_stem));
+        .context("Failed to get file name")?;
+
+    // Create a new path with the file stem and .pdf extension
+    let mut output_filename = output_dir.join(file_stem);
+    output_filename.set_extension("pdf");
+
     debug!("Generated output filename: {}", output_filename.display());
-    
+
     Ok(output_filename)
 }

@@ -21,15 +21,14 @@ use log::{info, error};
 /// * `Result<PathBuf>` - Path to the generated PDF file or an error
 pub fn convert_to_pdf(input_path: &Path, output_dir: &Path) -> Result<PathBuf> {
     let file_name = input_path.file_name()
-        .context("Failed to get file name")?
-        .to_string_lossy();
-    
+        .context("Failed to get file name")?;
+
     let extension = input_path.extension()
         .map(|ext| ext.to_string_lossy().to_lowercase())
         .unwrap_or_default();
-    
-    info!("Converting file: {}", file_name);
-    
+
+    info!("Converting file: {}", file_name.to_string_lossy());
+
     let result = match extension.as_ref() {
         "docx" => {
             info!("Detected Word document");
@@ -46,8 +45,8 @@ pub fn convert_to_pdf(input_path: &Path, output_dir: &Path) -> Result<PathBuf> {
             anyhow::bail!("Unsupported file format: {}", extension);
         }
     };
-    
-    info!("Successfully converted {} to PDF", file_name);
+
+    info!("Successfully converted {} to PDF", file_name.to_string_lossy());
     Ok(result)
 }
 
@@ -64,28 +63,28 @@ pub fn convert_to_pdf(input_path: &Path, output_dir: &Path) -> Result<PathBuf> {
 pub fn batch_convert(input_dir: &Path, output_dir: &Path) -> Result<Vec<PathBuf>> {
     info!("Starting batch conversion from {} to {}", 
           input_dir.display(), output_dir.display());
-    
+
     // Create output directory if it doesn't exist
     if !output_dir.exists() {
         std::fs::create_dir_all(output_dir)
             .context("Failed to create output directory")?;
     }
-    
+
     let mut results = Vec::new();
-    
+
     // Walk through the input directory
     for entry in walkdir::WalkDir::new(input_dir)
         .follow_links(true)
         .into_iter()
         .filter_map(|e| e.ok()) {
-            
+
         let path = entry.path();
-        
+
         // Skip directories
         if path.is_dir() {
             continue;
         }
-        
+
         // Check if file extension is supported
         if let Some(ext) = path.extension() {
             let ext_str = ext.to_string_lossy().to_lowercase();
@@ -101,7 +100,7 @@ pub fn batch_convert(input_dir: &Path, output_dir: &Path) -> Result<Vec<PathBuf>
             }
         }
     }
-    
+
     info!("Batch conversion completed. Converted {} files.", results.len());
     Ok(results)
 }
