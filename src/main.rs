@@ -32,13 +32,17 @@ enum Commands {
         #[clap(short, long, value_parser)]
         input: PathBuf,
 
-        /// Output directory for generated PDFs
+        /// Output directory for generated files
         #[clap(short, long, value_parser)]
         output: PathBuf,
 
         /// Only convert files of specified type (docx, xlsx, xls)
         #[clap(short, long, value_parser)]
         r#type: Option<String>,
+
+        /// Output format (pdf or markdown)
+        #[clap(short, long, value_parser, default_value = "pdf")]
+        format: String,
     },
     /// Watch a directory and automatically convert new documents
     Watch {
@@ -46,13 +50,17 @@ enum Commands {
         #[clap(short, long, value_parser)]
         input: PathBuf,
 
-        /// Output directory for generated PDFs
+        /// Output directory for generated files
         #[clap(short, long, value_parser)]
         output: PathBuf,
 
         /// Only convert files of specified type (docx, xlsx, xls)
         #[clap(short, long, value_parser)]
         r#type: Option<String>,
+
+        /// Output format (pdf or markdown)
+        #[clap(short, long, value_parser, default_value = "pdf")]
+        format: String,
     },
 }
 
@@ -72,11 +80,11 @@ fn main() -> Result<()> {
     println!("{}", "Starting Aqon document converter".bright_green());
 
     match &cli.command {
-        Commands::Convert { input, output, r#type } => {
-            convert_command(input, output, r#type)?;
+        Commands::Convert { input, output, r#type, format } => {
+            convert_command(input, output, r#type, format)?;
         },
-        Commands::Watch { input, output, r#type } => {
-            watch_command(input, output, r#type)?;
+        Commands::Watch { input, output, r#type, format } => {
+            watch_command(input, output, r#type, format)?;
         }
     }
 
@@ -84,7 +92,7 @@ fn main() -> Result<()> {
 }
 
 /// Handle the convert command
-fn convert_command(input: &PathBuf, output: &PathBuf, file_type: &Option<String>) -> Result<()> {
+fn convert_command(input: &PathBuf, output: &PathBuf, file_type: &Option<String>, format: &String) -> Result<()> {
     // Validate and resolve paths
     let input_dir = utils::resolve_path(input)
         .context("Failed to resolve input directory path")?;
@@ -105,6 +113,8 @@ fn convert_command(input: &PathBuf, output: &PathBuf, file_type: &Option<String>
     if let Some(t) = file_type {
         println!("{} {}", "File type filter:".blue(), t);
     }
+
+    println!("{} {}", "Output format:".blue(), format);
 
     // Get list of files to convert
     let files = get_files_to_convert(&input_dir, file_type)?;
@@ -131,9 +141,22 @@ fn convert_command(input: &PathBuf, output: &PathBuf, file_type: &Option<String>
         let file_name = file_path.file_name().unwrap_or_default().to_string_lossy();
         progress.set_message(format!("Converting {}", file_name));
 
-        match converter::convert_to_pdf(&file_path, &output_dir) {
-            Ok(pdf_path) => {
-                converted_files.push(pdf_path);
+        let result = match format.to_lowercase().as_str() {
+            "pdf" => {
+                converter::convert_to_pdf(&file_path, &output_dir)
+            },
+            "markdown" | "md" => {
+                converter::convert_to_markdown(&file_path, &output_dir)
+            },
+            _ => {
+                error!("Unsupported output format: {}. Using PDF as default.", format);
+                converter::convert_to_pdf(&file_path, &output_dir)
+            }
+        };
+
+        match result {
+            Ok(output_path) => {
+                converted_files.push(output_path);
                 progress.inc(1);
             },
             Err(err) => {
@@ -160,7 +183,7 @@ fn convert_command(input: &PathBuf, output: &PathBuf, file_type: &Option<String>
 }
 
 /// Handle the watch command
-fn watch_command(input: &PathBuf, output: &PathBuf, file_type: &Option<String>) -> Result<()> {
+fn watch_command(input: &PathBuf, output: &PathBuf, file_type: &Option<String>, format: &String) -> Result<()> {
     // Validate and resolve paths
     let input_dir = utils::resolve_path(input)
         .context("Failed to resolve input directory path")?;
