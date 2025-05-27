@@ -71,7 +71,7 @@ pub fn create_pdf_from_docx(
                     for cell_element in cell_elements {
                         table_row = table_row.element(cell_element);
                     }
-                    table_row.push().unwrap();
+                    table_row.push().context("Failed to add row to table in docx conversion")?;
                 }
 
                 doc.push(table);
@@ -149,7 +149,7 @@ pub fn create_pdf_from_xlsx(
                     for cell_element in cell_elements {
                         table_row = table_row.element(cell_element);
                     }
-                    table_row.push().unwrap();
+                    table_row.push().context("Failed to add row to table in xlsx conversion")?;
                 }
 
                 doc.push(table);
